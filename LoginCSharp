@@ -1,0 +1,140 @@
+using System;
+using MySql.Data.MySqlClient;
+
+public class sistemaLogin
+{
+    private static readonly string connectionString = "Server=localhost;Database=MauAdventures;Uid=root;Pwd=1234;";
+
+    public static void cadastrarUsuario(string usuario, string senha)
+    {
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            string sql = "INSERT INTO usuarios (usuario, senha) VALUES (@usuario, @senha)";
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@usuario", usuario);
+                command.Parameters.AddWithValue("@senha", senha);
+
+                try
+                {
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                    Console.WriteLine("Usuário cadastrado com sucesso.");
+                }
+                catch (MySqlException e)
+                {
+                    Console.WriteLine("Erro ao cadastrar usuário: " + e.Message);
+                }
+            }
+        }
+    }
+
+    public static bool verificarLogin(string usuario, string senha)
+    {
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            string sql = "SELECT usuario FROM usuarios WHERE usuario = @usuario AND senha = @senha";
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@usuario", usuario);
+                command.Parameters.AddWithValue("@senha", senha);
+
+                try
+                {
+                    connection.Open();
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        return reader.Read();
+                    }
+                }
+                catch (MySqlException e)
+                {
+                    Console.WriteLine("Erro ao verificar login: " + e.Message);
+                    return false;
+                }
+            }
+        }
+    }
+
+    public static void adicionarJogador(string usuario)
+    {
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            string sql = "INSERT INTO jogadores (usuario) VALUES (@usuario)";
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@usuario", usuario);
+
+                try
+                {
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                    Console.WriteLine("Jogador adicionado com sucesso.");
+                }
+                catch (MySqlException e)
+                {
+                    Console.WriteLine("Erro ao adicionar jogador: " + e.Message);
+                }
+            }
+        }
+    }
+
+    public static void atualizarJogador(string usuario, int pontuacao, int nivel)
+    {
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            string sql = "UPDATE jogadores SET pontuacao = @pontuacao, nivel = @nivel WHERE usuario = @usuario";
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@pontuacao", pontuacao);
+                command.Parameters.AddWithValue("@nivel", nivel);
+                command.Parameters.AddWithValue("@usuario", usuario);
+
+                try
+                {
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                    Console.WriteLine("Jogador atualizado com sucesso.");
+                }
+                catch (MySqlException e)
+                {
+                    Console.WriteLine("Erro ao atualizar jogador: " + e.Message);
+                }
+            }
+        }
+    }
+
+    public static int consultarPontuacao(string usuario)
+    {
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            string sql = "SELECT pontuacao FROM jogadores WHERE usuario = @usuario";
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@usuario", usuario);
+
+                try
+                {
+                    connection.Open();
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return reader.GetInt32(0);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Jogador não encontrado.");
+                            return 0;
+                        }
+                    }
+                }
+                catch (MySqlException e)
+                {
+                    Console.WriteLine("Erro ao consultar pontuação: " + e.Message);
+                    return 0;
+                }
+            }
+        }
+    }
+}
